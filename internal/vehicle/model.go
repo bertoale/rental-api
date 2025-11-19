@@ -23,3 +23,10 @@ type Vehicle struct {
 	PricePerDay float64     `json:"price_per_day"`
 	Status      Avaibility  `json:"status" gorm:"type:enum('available', 'rented', 'maintenance');default:'available'"`
 }
+
+type VehicleRequest struct {
+	Type        string `json:"type" form:"type" binding:"required"`
+	PlateNumber string `json:"plate_number" form:"plate_number" binding:"required"`
+	Brand       string `json:"brand" form:"brand" binding:"required"`
+	Model       string
+}

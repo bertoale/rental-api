@@ -1,11 +1,8 @@
-package cmd
+package main
 
 import (
 	"fmt"
-	"go-rental/internal/customer"
-	"go-rental/internal/rent"
 	"go-rental/internal/user"
-	"go-rental/internal/vehicle"
 	"go-rental/pkg/config"
 	"go-rental/pkg/middlewares"
 	"log"
@@ -45,9 +42,7 @@ func main() {
 	db := config.GetDB()
 	tables := []interface{}{
 		&user.User{},
-		&vehicle.Vehicle{},
-		&customer.Customer{},
-		&rent.Rent{},
+
 	}
 	if err := db.AutoMigrate(tables...); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
@@ -63,43 +58,15 @@ func main() {
 		})
 	})
 
-	// === Services, Repositories & Controllers ===
-	emailService := email.NewService(cfg)
+	user.SeedAdminUser()
 
 	userRepo := user.NewRepository(db)
-	eventRepo := event.Newrepository(db)
-	participantRepo := participant.Newrepository(db)
-	scheduleRepo := schedule.NewRepository(db)
-	notificationRepo := notification.Newrepository(db)
 
-	eventRepoAdapter := event.NewEventRepositoryAdapter(eventRepo)
 
-	notificationService := notification.NewService(notificationRepo, eventRepo, emailService, cfg)
-	notificationController := notification.NewController(notificationService, cfg)
-
-	userService := user.NewService(userRepo, emailService, cfg)
+	userService := user.NewService(userRepo, cfg)
 	userController := user.NewController(userService, cfg)
+	user.SetupUserRoutes(r, userController, cfg)
 
-	eventService := event.NewService(eventRepo, participantRepo, userRepo, notificationService, cfg)
-	eventController := event.NewController(eventService, cfg)
-
-	participantService := participant.NewService(participantRepo, eventRepoAdapter, userRepo, emailService, cfg)
-	participantController := participant.NewController(participantService, *cfg)
-
-	scheduleService := schedule.NewService(scheduleRepo, eventRepo, cfg)
-	scheduleController := schedule.NewController(scheduleService, cfg)
-
-	// === Scheduler ===
-	scheduler := schedule.NewScheduler(scheduleRepo, notificationService, participantRepo, userRepo)
-	scheduler.Start()
-	defer scheduler.Stop()
-
-	// === Routes Setup (converted to Gin) ===
-	user.SetupUserRoutesGin(r, userController, cfg)
-	event.SetupOrganizerEventRoutesGin(r, eventController, cfg)
-	participant.SetupParticipantRoutesGin(r, participantController, cfg)
-	schedule.SetupScheduleRoutesGin(r, scheduleController, cfg)
-	notification.SetupNotificationRoutesGin(r, notificationController, cfg)
 
 	// 404 Not Found
 	r.NoRoute(func(c *gin.Context) {

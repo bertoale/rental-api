@@ -23,10 +23,10 @@ type Service interface {
 	GenerateToken(user *User) (string, error)
 	//user
 	RegisterUser(req RegisterRequest) (*UserResponse,error)
-	GetUserByID(id uint) (*User, error)
-	GetUsersByStatus(status StatusType) ([]*User, error)
-	GetAllUsers() ([]*User, error)
-	UpdateUser(user *User) error
+	GetUserByID(id uint) (*UserResponse, error)
+	GetUsersByStatus(status string) ([]UserResponse, error)
+	GetAllUsers() ([]UserResponse, error)
+	UpdateUser(userID uint, req *UpdateRequest) (*UserResponse, error)
 }
 
 type service struct {
@@ -140,6 +140,10 @@ func (s *service) Login(req LoginRequest) (string, *UserResponse, error) {
 	userResp := &UserResponse{
 		ID:   u.ID,
 		Name: u.Name,
+		Username: u.Username,
+		Phone: u.Phone,
+		Role: string(u.Role),
+		Status: string(u.Status),
 	}
 	return token, userResp, nil
 	
@@ -177,12 +181,78 @@ func (s *service) RegisterUser(req RegisterRequest) (*UserResponse,error) {
 	return &UserResponse{
 		ID:       u.ID,
 		Name:     u.Name,
+		Username: u.Username,
+		Phone:    u.Phone,
+		Role:     string(u.Role),
+		Status:   string(u.Status),
 	}, nil
 }
 
 // UpdateUser implements Service.
-func (s *service) UpdateUser(user *User) error {
-	panic("unimplemented")
+func (s *service)	UpdateUser(userID uint, req *UpdateRequest) (*UserResponse, error) {
+	u, err := s.repo.FindByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+	if req.Name != nil {
+		if *req.Name == "" {
+			return nil, errors.New("name cannot be empty")
+		}
+		u.Name = *req.Name
+	}
+
+	if req.Phone != nil {
+		if *req.Phone == "" {
+			return nil, errors.New("phone cannot be empty")
+		}
+		u.Phone = *req.Phone
+	}
+
+	if req.Username != nil {
+		if *req.Username == "" {
+			return nil, errors.New("username cannot be empty")
+		}
+		u.Username = *req.Username
+	}
+
+	if req.Role != nil {
+		if *req.Role == "" {
+			return nil, errors.New("role cannot be empty")
+		}
+		u.Role = RoleType(*req.Role)
+	}
+
+	if req.Status != nil {
+		if *req.Status == "" {
+			return nil, errors.New("status cannot be empty")
+		}
+		u.Status = StatusType(*req.Status)
+	}
+
+	if req.Password != nil {
+		if *req.Password == "" {
+			return nil, errors.New("password cannot be empty")
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		u.Password = string(hashedPassword)
+	}
+
+	if err := s.repo.Update(u); err != nil {
+		return nil, err
+	}
+
+	return &UserResponse{
+		ID:       u.ID,
+		Name:     u.Name,
+		Username: u.Username,
+		Phone:    u.Phone,
+		Role:     string(u.Role),
+		Status:   string(u.Status),
+	}, nil
 }
 
 func NewService(repo Repository, cfg *config.Config) Service {
