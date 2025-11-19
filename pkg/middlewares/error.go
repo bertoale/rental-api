@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,32 +8,16 @@ import (
 
 func GinErrorHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Next() // menjalankan handler dulu
+		c.Next()
 
-		// Ambil semua error yang dikumpulkan Gin
-		errs := c.Errors
-		if len(errs) == 0 {
+		// Jika ada error
+		err := c.Errors.Last()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
 			return
 		}
-
-		// Ambil error terakhir
-		err := errs.Last().Err
-		if err == nil {
-			return
-		}
-
-		// Log error
-		log.Printf("❌ Gin Error: %v", err)
-
-		// Jika response sudah terkirim, hentikan
-		if c.Writer.Written() {
-			return
-		}
-
-		// Format respons error
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "error",
-			"message": err.Error(),
-		})
 	}
 }

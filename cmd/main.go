@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go-rental/internal/user"
+	"go-rental/internal/vehicle"
 	"go-rental/pkg/config"
 	"go-rental/pkg/middlewares"
 	"log"
@@ -42,7 +43,7 @@ func main() {
 	db := config.GetDB()
 	tables := []interface{}{
 		&user.User{},
-
+		&vehicle.Vehicle{},
 	}
 	if err := db.AutoMigrate(tables...); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
@@ -61,6 +62,11 @@ func main() {
 	user.SeedAdminUser()
 
 	userRepo := user.NewRepository(db)
+	vehicleRepo := vehicle.NewRepository(db)
+
+	vehicleService := vehicle.NewService(vehicleRepo, cfg)
+	vehicleController := vehicle.NewController(vehicleService)
+	vehicle.SetupVehicleRoutes(r, vehicleController, cfg)
 
 
 	userService := user.NewService(userRepo, cfg)

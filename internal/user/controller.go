@@ -2,6 +2,8 @@ package user
 
 import (
 	"go-rental/pkg/config"
+	"go-rental/pkg/response"
+	"go-rental/pkg/validator"
 	"net/http"
 	"strconv"
 	"time"
@@ -48,20 +50,23 @@ func (ctrl *Controller) Login (c *gin.Context) {
 
 func (ctrl *Controller) CreateUser(c *gin.Context) {
 	var req RegisterRequest
-	if err := c.ShouldBind((&req)); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
-		return
-	}
-	response, err := ctrl.service.RegisterUser(req)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		msg := validator.FormatErrors(err)
+		response.Error(c, 400, msg)
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "user created successfully",
-		"user": response})
+	result, err := ctrl.service.RegisterUser(req)
+	if err != nil {
+		response.Error(c, 400, err.Error())
+		return
+	}
+
+	response.Success(c, 201, "User created successfully", result)
 }
+
+
 
 func (ctrl *Controller) GetAllUsers(c *gin.Context) {
 	u, err := ctrl.service.GetAllUsers()
