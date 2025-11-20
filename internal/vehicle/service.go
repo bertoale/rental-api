@@ -33,20 +33,8 @@ func (s *service) CreateVehicle(req *VehicleRequest) (*VehicleResponse, error) {
 		return nil, err
 	}
 
-	response := &VehicleResponse{
-		ID:          vehicle.ID,
-		Type:        vehicle.Type,
-		PlateNumber: vehicle.PlateNumber,
-		Brand:       vehicle.Brand,
-		Model:       vehicle.Model,
-		Year:        vehicle.Year,
-		PricePerDay: vehicle.PricePerDay,
-		Status:      vehicle.Status,
-	}
-
-	return response, nil
+	return toVehicleResponse(vehicle), nil
 }
-
 
 // DeleteVehicle implements Service.
 func (s *service) DeleteVehicle(id uint) error {
@@ -62,27 +50,18 @@ func (s *service) DeleteVehicle(id uint) error {
 	return nil
 }
 
-
 // GetAllVehicles implements Service.
 func (s *service) GetAllVehicles(filter *VehicleFilter) ([]*VehicleResponse, error) {
 	vehicles, err := s.repo.FindAll(filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve vehicles: %w", err)
 	}
+
 	var responses []*VehicleResponse
-	for _, vehicle := range vehicles {
-		response := &VehicleResponse{
-			ID:          vehicle.ID,
-			Type:        vehicle.Type,
-			PlateNumber: vehicle.PlateNumber,
-			Brand:       vehicle.Brand,
-			Model:       vehicle.Model,
-			Year:        vehicle.Year,
-			PricePerDay: vehicle.PricePerDay,
-			Status:      vehicle.Status,
-		}
-		responses = append(responses, response)
+	for _, v := range vehicles {
+		responses = append(responses, toVehicleResponse(v))
 	}
+
 	return responses, nil
 }
 
@@ -92,17 +71,7 @@ func (s *service) GetVehicleByID(id uint) (*VehicleResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("vehicle not found: %w", err)
 	}
-	response := &VehicleResponse{
-		ID:          vehicle.ID,
-		Type:        vehicle.Type,
-		PlateNumber: vehicle.PlateNumber,
-		Brand:       vehicle.Brand,
-		Model:       vehicle.Model,
-		Year:        vehicle.Year,
-		PricePerDay: vehicle.PricePerDay,
-		Status:      vehicle.Status,
-	}
-	return response, nil
+	return toVehicleResponse(vehicle), nil
 }
 
 // UpdateVehicle implements Service.
@@ -142,7 +111,6 @@ func (s *service) UpdateVehicle(id uint, req *UpdateVehicleRequest) (*VehicleRes
 
 	return toVehicleResponse(vehicle), nil
 }
-
 
 func NewService(repo Repository, cfg *config.Config) Service {
 	return &service{

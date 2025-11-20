@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"go-rental/internal/customer"
+	"go-rental/internal/rent"
 	"go-rental/internal/user"
 	"go-rental/internal/vehicle"
 	"go-rental/pkg/config"
@@ -44,6 +46,8 @@ func main() {
 	tables := []interface{}{
 		&user.User{},
 		&vehicle.Vehicle{},
+		&customer.Customer{},
+		&rent.Rent{},
 	}
 	if err := db.AutoMigrate(tables...); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
@@ -63,6 +67,16 @@ func main() {
 
 	userRepo := user.NewRepository(db)
 	vehicleRepo := vehicle.NewRepository(db)
+	customeRepo := customer.NewRepository(db)
+	rentRepo := rent.NewRepository(db, userRepo, vehicleRepo, customeRepo)
+
+	rentService := rent.NewService(rentRepo, vehicleRepo, *cfg)
+	rentController := rent.NewController(rentService, vehicle.NewService(vehicleRepo, cfg), customer.NewService(customeRepo, cfg))
+	rent.RentSetupRoutes(r, rentController, cfg)
+
+	customerService := customer.NewService(customeRepo, cfg)
+	customerController := customer.NewController(customerService)
+	customer.SetupCustomerRoutes(r, customerController, cfg)
 
 	vehicleService := vehicle.NewService(vehicleRepo, cfg)
 	vehicleController := vehicle.NewController(vehicleService)
