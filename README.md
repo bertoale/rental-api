@@ -30,12 +30,11 @@ GO-RENTAL adalah backend API untuk sistem manajemen rental kendaraan. API ini me
 ## 3. Tech Stack
 
 - **Backend Framework:** Gin (Go)
-- **ORM/Database:** GORM, PostgreSQL
+- **ORM/Database:** GORM, MySQL
 - **JWT/Auth:** github.com/golang-jwt/jwt/v5
 - **Other Utilities:**
   - github.com/joho/godotenv (env loader)
   - github.com/swaggo/gin-swagger (API docs)
-  - Mailjet (email, opsional)
 
 ---
 
