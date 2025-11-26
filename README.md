@@ -73,7 +73,7 @@ server/
 ```bash
 # Clone repository
 $ git clone <repo-url>
-$ cd task-api
+$ cd rental-api
 
 # Install dependencies
 $ go mod download
