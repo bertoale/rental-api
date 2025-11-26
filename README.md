@@ -1,109 +1,273 @@
-# GO-RENTAL
+# GO-RENTAL Backend API
 
-GO-RENTAL is a vehicle rental management REST API built with Go and Gin framework. It supports user authentication, customer management, vehicle management, and rental transactions.
+## 1. Project Overview
 
-## Features
+GO-RENTAL adalah backend API untuk sistem manajemen rental kendaraan. API ini menyediakan fitur otentikasi, manajemen user, customer, kendaraan, dan transaksi sewa kendaraan. Dirancang dengan arsitektur RESTful, keamanan JWT, dan dokumentasi Swagger.
+
+**Teknologi utama:**
+
+- Go (Golang)
+- Gin Web Framework
+- GORM (ORM)
+- MySQL
+- JWT Authentication
+- Swagger (API Docs)
+
+---
+
+## 2. Features
 
 - User authentication (JWT)
-- Customer CRUD
-- Vehicle CRUD
-- Rent transaction (create, update, complete, cancel)
-- Relational data (user, customer, vehicle)
-- Error handling and validation
+- CRUD User, Customer, Vehicle, Rent
+- Role-based access (admin, staff)
+- Global error handling & validation
+- Middleware (auth, CORS, error handler)
+- Swagger API documentation
+- Seeder admin user
 
-## API Endpoints
+---
 
-### Auth
+## 3. Tech Stack
 
-- `POST /api/auth/login` — Login and get JWT token
+- **Backend Framework:** Gin (Go)
+- **ORM/Database:** GORM, PostgreSQL
+- **JWT/Auth:** github.com/golang-jwt/jwt/v5
+- **Other Utilities:**
+  - github.com/joho/godotenv (env loader)
+  - github.com/swaggo/gin-swagger (API docs)
+  - Mailjet (email, opsional)
 
-### User
+---
 
-- `POST /api/user/` — Create user
-- `GET /api/user/` — List users
-- `GET /api/user/:id` — Get user by ID
-- `PUT /api/user/:id` — Update user
-
-### Customer
-
-- `POST /api/customer/` — Create customer
-- `GET /api/customer/` — List customers
-- `GET /api/customer/:id` — Get customer by ID
-- `PUT /api/customer/:id` — Update customer
-
-### Vehicle
-
-- `POST /api/vehicle/` — Create vehicle
-- `GET /api/vehicle/` — List vehicles
-- `GET /api/vehicle/:id` — Get vehicle by ID
-- `PUT /api/vehicle/:id` — Update vehicle
-- `DELETE /api/vehicle/:id` — Delete vehicle
-
-### Rent
-
-- `POST /api/rent/` — Create rent (vehicle rental)
-- `GET /api/rent/` — List rents
-- `GET /api/rent/:id` — Get rent by ID
-- `PUT /api/rent/:id/` — Update rent (complete/cancel)
-
-## How to Run
-
-1. Clone this repository
-2. Setup your MySQL database and configure `config/config.go`
-3. Run migration automatically on startup
-4. Start the server:
-   ```bash
-   go run cmd/main.go
-   ```
-5. Access API at `http://localhost:5000`
-
-## Authentication
-
-All endpoints (except login) require JWT authentication. Pass the token in the `Cookie` header:
+## 4. Project Structure
 
 ```
-Cookie: token=YOUR_JWT_TOKEN
+server/
+├── cmd/                # Entry point (main.go)
+├── docs/               # Swagger docs
+├── internal/           # Domain logic
+│   ├── user/           # User module (CRUD, auth, seeder)
+│   ├── customer/       # Customer module
+│   ├── vehicle/        # Vehicle module
+│   └── rent/           # Rent/transaction module
+├── pkg/                # Shared packages
+│   ├── config/         # Config & DB connection
+│   ├── middlewares/    # Middleware (auth, error)
+│   ├── response/       # Response formatter
+│   └── validator/      # Custom validation
+├── go.mod, go.sum      # Go modules
+└── README.md           # This file
 ```
 
-## Example Request
+**Penjelasan:**
 
-### Create Rent
+- `cmd/`: Main entry point aplikasi
+- `internal/`: Kode utama per domain
+- `pkg/`: Utilitas & helper global
+- `docs/`: Dokumentasi Swagger
+
+---
+
+## 5. Installation
 
 ```bash
-curl --location --request POST 'http://localhost:5000/api/rent/' \
---header 'Content-Type: application/json' \
---header 'Cookie: token=YOUR_JWT_TOKEN' \
---data-raw '{
-  "customer_id": 1,
-  "vehicle_id": 2,
-  "notes": "Rental for business trip"
-}'
+# Clone repository
+$ git clone <repo-url>
+$ cd task-api
+
+# Install dependencies
+$ go mod download
 ```
 
-### Complete Rent
+---
+
+## 6. Environment Variables
+
+Buat file `.env` di root project. Variabel yang diperlukan:
+
+| Variable           | Keterangan                     |
+| ------------------ | ------------------------------ |
+| DB_HOST            | Host database                  |
+| DB_PORT            | Port database                  |
+| DB_USER            | Username database              |
+| DB_PASSWORD        | Password database              |
+| DB_NAME            | Nama database                  |
+| DB_SSLMODE         | SSL mode (disable/require)     |
+| JWT_SECRET         | Secret key JWT                 |
+| JWT_EXPIRES_IN     | Durasi token JWT (misal: 168h) |
+| PORT               | Port aplikasi (default: 5000)  |
+| NODE_ENV           | development/production         |
+| CORS_ORIGIN        | Origin frontend                |
+| MAILJET_API_KEY    | (Opsional) API key Mailjet     |
+| MAILJET_API_SECRET | (Opsional) Secret Mailjet      |
+| MAILJET_PORT       | (Opsional) SMTP port Mailjet   |
+| MAILJET_HOST       | (Opsional) SMTP host Mailjet   |
+| MAIL_SENDER_EMAIL  | (Opsional) Email pengirim      |
+| MAIL_SENDER_NAME   | (Opsional) Nama pengirim       |
+
+**Contoh .env:**
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+DB_NAME=go_rental
+DB_SSLMODE=disable
+JWT_SECRET=your_super_secret_jwt_key
+JWT_EXPIRES_IN=168h
+PORT=5000
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:3000
+MAILJET_API_KEY=
+MAILJET_API_SECRET=
+MAILJET_PORT=587
+MAILJET_HOST=in-v3.mailjet.com
+MAIL_SENDER_EMAIL=noreply@goevent.com
+MAIL_SENDER_NAME=GoEvent App
+```
+
+---
+
+## 7. Database Setup
+
+- **Migrasi otomatis:**
+  Saat aplikasi dijalankan, migrasi tabel berjalan otomatis.
+- **Seeder:**
+  Admin user otomatis dibuat jika belum ada (pada file internal/user/seeder.go).
+
+---
+
+## 8. Running the App
+
+**Development:**
 
 ```bash
-curl --location --request PUT 'http://localhost:5000/api/rent/3' \
---header 'Content-Type: application/x-www-form-urlencoded' \
---header 'Cookie: token=YOUR_JWT_TOKEN' \
---data-urlencode 'status=completed'
+$ go run cmd/main.go
 ```
 
-## Project Structure
+**Production:**
 
-```
-cmd/main.go                # Entry point
-internal/
-  customer/                # Customer module
-  rent/                    # Rent module
-  user/                    # User module
-  vehicle/                 # Vehicle module
-pkg/
-  config/                  # Config and database
-  middlewares/             # Auth and error middlewares
-  response/                # Response helpers
+```bash
+$ go build -o app cmd/main.go
+$ ./app
 ```
 
-## License
+---
 
-MIT
+## 9. API Documentation
+
+- Swagger UI: [http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html)
+
+### Endpoint Utama
+
+#### Auth
+
+- `POST /api/auth/login` — Login user
+  - Request:
+    ```json
+    {
+      "username": "admin",
+      "password": "11111111"
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "success": true,
+      "message": "Login success",
+      "data": {
+        "token": "<jwt-token>",
+        "user": { ... }
+      }
+    }
+    ```
+
+#### User
+
+- `GET /api/user/` — List user
+- `POST /api/user/` — Register user
+- `GET /api/user/{id}` — Detail user
+- `PUT /api/user/{id}` — Update user
+
+#### Customer
+
+- `GET /api/customer/` — List customer
+- `POST /api/customer/` — Register customer
+- `GET /api/customer/{id}` — Detail customer
+- `PUT /api/customer/{id}` — Update customer
+
+#### Vehicle
+
+- `GET /api/vehicle/` — List kendaraan
+- `POST /api/vehicle/` — Register kendaraan
+- `GET /api/vehicle/{id}` — Detail kendaraan
+- `PUT /api/vehicle/{id}` — Update kendaraan
+- `DELETE /api/vehicle/{id}` — Hapus kendaraan
+
+#### Rent
+
+- `GET /api/rent/` — List transaksi
+- `POST /api/rent/` — Buat transaksi
+- `GET /api/rent/{id}` — Detail transaksi
+- `PUT /api/rent/{id}` — Update transaksi
+
+**Format Response Sukses:**
+
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+```
+
+---
+
+## 10. Authentication
+
+- Sistem login menggunakan JWT (Bearer Token)
+- Token dikirim via header `Authorization: Bearer <token>` atau cookie
+- Middleware `Authenticate` melindungi route
+- Role-based access (admin, staff)
+
+---
+
+## 11. Error Handling
+
+- Format error global:
+
+```json
+{
+  "success": false,
+  "message": "error message"
+}
+```
+
+- Error 401: Token tidak valid/kadaluarsa
+- Error 404: Route/data tidak ditemukan
+- Error 400: Validasi gagal
+
+---
+
+## 12. Testing (Opsional)
+
+- Belum tersedia unit test. Tambahkan dengan Go testing framework jika diperlukan.
+
+---
+
+## 13. Deployment
+
+- **Docker:**
+  - Buat Dockerfile, build image, dan jalankan container
+- **Railway/Render/VPS:**
+  - Deploy dengan mengatur env dan build command
+- **Tips:**
+  - Pastikan variabel .env sudah di-setup di environment production
+  - Gunakan reverse proxy (Nginx) untuk production
+
+---
+
+## 14. License
+
+MIT License
