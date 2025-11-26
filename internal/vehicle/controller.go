@@ -18,35 +18,43 @@ func NewController(s Service) *Controller {
 	}
 }
 
+// CreateVehicle godoc
+// @Summary Create vehicle
+// @Description Register a new vehicle
+// @Tags Vehicle
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param data body VehicleRequest true "Vehicle data"
+// @Success 201 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Router /api/vehicle/ [post]
 func (ctrl *Controller) CreateVehicle(c *gin.Context) {
 	var req VehicleRequest
 
 	// Bind JSON
 	if err := c.ShouldBind(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "invalid request",
-			"error":   err.Error(),
-		})
+		response.Error(c, http.StatusBadRequest, "invalid request: "+err.Error())
 		return
 	}
 	// Call service
-	response, err := ctrl.service.CreateVehicle(&req)
+	resp, err := ctrl.service.CreateVehicle(&req)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	// Success
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"message": "vehicle created successfully",
-		"data":    response,
-	})
+	response.Success(c, http.StatusCreated, "vehicle created successfully", resp)
 }
 
+// GetVehicles godoc
+// @Summary Get all vehicles
+// @Description Retrieve all vehicles
+// @Tags Vehicle
+// @Produce json
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Router /api/vehicle/ [get]
 func (ctrl *Controller) GetVehicles(c *gin.Context) {
 	var filter VehicleFilter
 
@@ -65,6 +73,17 @@ func (ctrl *Controller) GetVehicles(c *gin.Context) {
 	response.Success(c, http.StatusOK, "vehicles retrieved successfully", vehicles)
 }
 
+// GetVehicleByID godoc
+// @Summary Get vehicle by ID
+// @Description Retrieve a vehicle by its ID
+// @Tags Vehicle
+// @Produce json
+// @Param id path int true "Vehicle ID"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/vehicle/{id} [get]
 func (ctrl *Controller) GetVehicleByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -90,6 +109,20 @@ func (ctrl *Controller) GetVehicleByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "vehicle retrieved successfully", vehicle)
 }
 
+// UpdateVehicle godoc
+// @Summary Update vehicle
+// @Description Update vehicle data by ID
+// @Tags Vehicle
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Vehicle ID"
+// @Param data body UpdateVehicleRequest true "Vehicle update data"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/vehicle/{id} [put]
 func (ctrl *Controller) UpdateVehicle(c *gin.Context) {
 	id := c.Param("id")
 	vehicleID, err := strconv.ParseUint(id, 10, 32)
@@ -114,6 +147,18 @@ func (ctrl *Controller) UpdateVehicle(c *gin.Context) {
 	response.Success(c, http.StatusOK, "vehicle updated successfully", updatedVehicle)
 }
 
+// DeleteVehicle godoc
+// @Summary Delete vehicle
+// @Description Delete a vehicle by its ID
+// @Tags Vehicle
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Vehicle ID"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/vehicle/{id} [delete]
 func (ctrl *Controller) DeleteVehicle(c *gin.Context) {
 	id := c.Param("id")
 	vehicleID, err := strconv.ParseUint(id, 10, 32)

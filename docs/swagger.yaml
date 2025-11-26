@@ -1,0 +1,735 @@
+basePath: /
+definitions:
+  customer.CustomerRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      id_card:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    required:
+    - address
+    - email
+    - id_card
+    - name
+    - phone
+    type: object
+  customer.UpdateCustomerRequest:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      id_card:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  rent.RentRequest:
+    properties:
+      customer_id:
+        type: integer
+      notes:
+        type: string
+      vehicle_id:
+        type: integer
+    required:
+    - customer_id
+    - vehicle_id
+    type: object
+  rent.UpdateRentRequest:
+    properties:
+      notes:
+        type: string
+      status:
+        type: string
+    type: object
+  response.ErrorResponse:
+    description: Error response
+    properties:
+      message:
+        example: error message
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  response.SuccessResponse:
+    description: Success response
+    properties:
+      data: {}
+      message:
+        example: Operation successful
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  user.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  user.RegisterRequest:
+    properties:
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/user.RoleType'
+        enum:
+        - admin
+        - staff
+      username:
+        type: string
+    required:
+    - name
+    - password
+    - phone
+    - role
+    - username
+    type: object
+  user.RoleType:
+    enum:
+    - admin
+    - staff
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleMember
+  user.UpdateRequest:
+    properties:
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      phone:
+        type: string
+      role:
+        enum:
+        - admin
+        - staff
+        type: string
+      status:
+        enum:
+        - active
+        - inactive
+        type: string
+      username:
+        type: string
+    type: object
+  vehicle.UpdateVehicleRequest:
+    properties:
+      brand:
+        type: string
+      model:
+        type: string
+      plate_number:
+        type: string
+      price_per_day:
+        type: number
+      status:
+        type: string
+      type:
+        type: string
+      year:
+        type: integer
+    type: object
+  vehicle.VehicleRequest:
+    properties:
+      brand:
+        type: string
+      model:
+        type: string
+      plate_number:
+        type: string
+      price_per_day:
+        type: number
+      status:
+        type: string
+      type:
+        type: string
+      year:
+        type: integer
+    required:
+    - brand
+    - model
+    - plate_number
+    - price_per_day
+    - status
+    - type
+    - year
+    type: object
+host: localhost:5000
+info:
+  contact:
+    email: support@go-rental.com
+    name: API Support
+  description: API for vehicle rental management system
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: GO-RENTAL API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login and get JWT token
+      parameters:
+      - description: Login data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login user
+      tags:
+      - Auth
+  /api/customer/:
+    get:
+      description: Retrieve all customers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all customers
+      tags:
+      - Customer
+    post:
+      consumes:
+      - application/json
+      description: Register a new customer
+      parameters:
+      - description: Customer data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/customer.CustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create customer
+      tags:
+      - Customer
+  /api/customer/{id}:
+    get:
+      description: Retrieve a customer by their ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get customer by ID
+      tags:
+      - Customer
+    put:
+      consumes:
+      - application/json
+      description: Update customer data by ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Customer update data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/customer.UpdateCustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update customer
+      tags:
+      - Customer
+  /api/rent/:
+    get:
+      description: Retrieve all rent transactions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all rents
+      tags:
+      - Rent
+    post:
+      consumes:
+      - application/json
+      description: Create a new rent transaction
+      parameters:
+      - description: Rent data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/rent.RentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create rent
+      tags:
+      - Rent
+  /api/rent/{id}:
+    get:
+      description: Retrieve a rent transaction by its ID
+      parameters:
+      - description: Rent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get rent by ID
+      tags:
+      - Rent
+    put:
+      consumes:
+      - application/json
+      description: Update rent transaction by ID
+      parameters:
+      - description: Rent ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Rent update data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/rent.UpdateRentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update rent
+      tags:
+      - Rent
+  /api/user/:
+    get:
+      description: Retrieve all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      parameters:
+      - description: User data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register user
+      tags:
+      - User
+  /api/user/{id}:
+    get:
+      description: Retrieve a user by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update user data by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User update data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/user.UpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - User
+  /api/user/status:
+    get:
+      description: Retrieve users filtered by status
+      parameters:
+      - description: User status
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get users by status
+      tags:
+      - User
+  /api/vehicle/:
+    get:
+      description: Retrieve all vehicles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get all vehicles
+      tags:
+      - Vehicle
+    post:
+      consumes:
+      - application/json
+      description: Register a new vehicle
+      parameters:
+      - description: Vehicle data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/vehicle.VehicleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create vehicle
+      tags:
+      - Vehicle
+  /api/vehicle/{id}:
+    delete:
+      description: Delete a vehicle by its ID
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete vehicle
+      tags:
+      - Vehicle
+    get:
+      description: Retrieve a vehicle by its ID
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get vehicle by ID
+      tags:
+      - Vehicle
+    put:
+      consumes:
+      - application/json
+      description: Update vehicle data by ID
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Vehicle update data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/vehicle.UpdateVehicleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update vehicle
+      tags:
+      - Vehicle
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "go-rental/docs"
 	"go-rental/internal/customer"
 	"go-rental/internal/rent"
 	"go-rental/internal/user"
@@ -13,7 +14,28 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title GO-RENTAL API
+// @version 1.0
+// @description API for vehicle rental management system
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email support@go-rental.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:5000
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	cfg := config.LoadConfig()
@@ -36,6 +58,7 @@ func main() {
 		AllowCredentials: true,
 	}))
 	r.Use(middlewares.GinErrorHandler())
+
 	
 	// === Database ===
 	if err := config.Connect(cfg); err != nil {
@@ -62,6 +85,9 @@ func main() {
 			"timestamp": time.Now(),
 		})
 	})
+
+	// === Swagger Docs ===
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	user.SeedAdminUser()
 

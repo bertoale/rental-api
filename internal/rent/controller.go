@@ -24,6 +24,18 @@ func NewController(rentService Service, vehicleService vehicle.Service, customer
 	}
 }
 
+// CreateRent godoc
+// @Summary Create rent
+// @Description Create a new rent transaction
+// @Tags Rent
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param data body RentRequest true "Rent data"
+// @Success 201 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Router /api/rent/ [post]
 func (ctrl *Controller) CreateRent(c *gin.Context) {
 	var req RentRequest
 
@@ -65,6 +77,15 @@ func (ctrl *Controller) CreateRent(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "rent created successfully", rent)
 }
 
+// GetRents godoc
+// @Summary Get all rents
+// @Description Retrieve all rent transactions
+// @Tags Rent
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.SuccessResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /api/rent/ [get]
 func (ctrl *Controller) GetRents(c *gin.Context) {
 	rents, err := ctrl.rentService.GetAllRents()
 	if err != nil {
@@ -74,6 +95,17 @@ func (ctrl *Controller) GetRents(c *gin.Context) {
 	response.Success(c, http.StatusOK, "rents retrieved successfully", rents)
 }
 
+// GetRentByID godoc
+// @Summary Get rent by ID
+// @Description Retrieve a rent transaction by its ID
+// @Tags Rent
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Rent ID"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Router /api/rent/{id} [get]
 func (ctrl *Controller) GetRentByID(c *gin.Context) {
 	id := c.Param("id")
 	rentID,err := strconv.ParseUint(id,10,32)
@@ -89,6 +121,19 @@ func (ctrl *Controller) GetRentByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "rent retrieved successfully", rent)
 }
 
+// UpdateRent godoc
+// @Summary Update rent
+// @Description Update rent transaction by ID
+// @Tags Rent
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Rent ID"
+// @Param data body UpdateRentRequest true "Rent update data"
+// @Success 200 {object} response.SuccessResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Router /api/rent/{id} [put]
 func (ctrl *Controller) UpdateRent(c *gin.Context) {
     // Parse rent ID
     idParam := c.Param("id")

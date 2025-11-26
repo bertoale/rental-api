@@ -26,7 +26,7 @@ func (s *service) CreateCustomer(req *CustomerRequest) (*CustomerResponse, error
 		IDCard:  req.IDCard,
 	}
 	if err := s.repo.Create(customer); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create customer: %w", err)
 	}
 	return ToCustomerResponse(customer), nil
 
